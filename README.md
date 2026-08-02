@@ -8,7 +8,7 @@ ResearchMind (Multi-Agent Research System) is a lightweight Python project that 
 ## Stack
 - Language(s): Python 3.10+ (primary)
 - Framework / runtime: Streamlit (UI) + LangChain agents
-- Notable libraries: langchain, langchain-openai / ChatOpenAI, tavily-python (search), BeautifulSoup (scraping)
+- Notable libraries: langchain, ChatGoogleGenerativeAI (Gemini), tavily-python (search), BeautifulSoup (scraping)
 
 ## Contents / Project layout
 ```
@@ -26,7 +26,7 @@ How it fits together:
   - web_search(query) → uses TavilyClient to produce a short list of titles/URLs/snippets.
   - scrape_url(url) → requests + BeautifulSoup to return cleaned page text (truncated).
 - agents.py composes agents and chains:
-  - build_search_agent: agent with web_search tool (uses ChatOpenAI).
+  - build_search_agent: agent with web_search tool (uses an LLM client).
   - build_reader_agent: agent with scrape_url tool.
   - writer_chain: prompt → LLM to produce full research report (Introduction, Key Findings, Conclusion, Sources).
   - critic_chain: prompt → LLM to evaluate the generated report.
@@ -46,10 +46,14 @@ pip install -r requirements.txt
 
 2) Create a .env file in the project root with at least:
 ```
-OPENAI_API_KEY=sk-...           # required by langchain_openai / OpenAI
-TAVILY_API_KEY=...              # required by tavily-python web search tool
+GOOGLE_API_KEY=YOUR_GOOGLE_API_KEY   # required by ChatGoogleGenerativeAI (Gemini)
+TAVILY_API_KEY=...                   # required by tavily-python web search tool
 ```
 (You can also export these env vars directly.)
+
+Notes on LLM configuration:
+- This repository can be used with Google Gemini via LangChain's ChatGoogleGenerativeAI wrapper and the Gemini model name `gemini-3.6-flash`.
+- By default, the example code in agents.py uses ChatOpenAI with model `gpt-4o-mini`. To use Gemini, replace the ChatOpenAI usage in agents.py with ChatGoogleGenerativeAI and set the model to `gemini-3.6-flash` (and ensure GOOGLE_API_KEY is set).
 
 3) Run the Streamlit UI (recommended for interactive use)
 ```bash
@@ -64,13 +68,9 @@ python pipeline.py
 ```
 
 ## Environment variables / configuration
-- OPENAI_API_KEY — API key for OpenAI models (used by langchain_openai.ChatOpenAI)
+- GOOGLE_API_KEY — API key for Google Generative Models (used by ChatGoogleGenerativeAI / Gemini)
 - TAVILY_API_KEY — API key for Tavily search (used by tools.web_search)
 - (Optional) Any other env vars supported by installed libs (e.g., proxies)
-
-Notes:
-- The default model configured in agents.py is "gpt-4o-mini". Change the model string in agents.py if you need a different model.
-- Web scraping in tools.scrape_url is intentionally simple; it strips script/style/nav/footer and returns the first ~3000 characters.
 
 ## Example pipeline flow (high level)
 1. Search Agent queries Tavily for the topic and returns top titles/URLs/snippets.
@@ -79,7 +79,7 @@ Notes:
 4. Critic Chain scores and lists strengths/areas for improvement for the report.
 
 ## Troubleshooting & tips
-- If the Streamlit page shows LLM errors, confirm OPENAI_API_KEY is set and quota/permissions are OK.
+- If the Streamlit page shows LLM errors, confirm GOOGLE_API_KEY is set and quota/permissions are OK.
 - If web_search returns empty results, verify TAVILY_API_KEY and network access.
 - To debug scraping issues, add logging around requests.get in tools.py or increase the timeout.
 - To reduce API calls while developing, add simple caching around tools.web_search and tools.scrape_url.
@@ -91,7 +91,7 @@ Notes:
 - Add tests, CI, and a license file (currently none included).
 
 ## Security & cost considerations
-- This project calls external APIs (OpenAI, Tavily) that incur costs. Keep API keys private and monitor usage.
+- This project calls external APIs (Google Generative Models, Tavily) that may incur costs. Keep API keys private and monitor usage.
 - Be mindful when scraping websites — respect robots.txt and site terms of use.
 
 ## Contributing
@@ -103,6 +103,6 @@ Notes:
 - No license file is present in the repository. Add a LICENSE (e.g., MIT) if you want to allow reuse.
 
 ## Try asking
-- How can I swap the model used in agents.py from "gpt-4o-mini" to another OpenAI model while preserving prompt behavior?
+- How can I swap the model used in agents.py from "gpt-4o-mini" to `gemini-3.6-flash` while preserving prompt behavior?
 - Can web_search be extended to return full result metadata (timestamp, domain, language) and have the reader agent choose multiple URLs? (see tools.py and agents.py)
 - Where would you add caching or rate-limiting to avoid repeated scraping when running the same topic multiple times? (see tools.py / pipeline.py)
