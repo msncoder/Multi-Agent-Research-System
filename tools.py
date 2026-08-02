@@ -34,3 +34,19 @@ def scrape_url(url: str) -> str:
     except Exception as e:
         return f"Could not scrape URL: {str(e)}"
 
+
+# if __name__ == "__main__":
+#     search_results = web_search.invoke("saylani")
+#     print(search_results)
+
+#     # search_results ke text se pehla URL nikalna hoga
+#     # simple tareeqa: regex se extract karo
+#     import re
+#     urls = re.findall(r"URL:\s*(\S+)", search_results)
+
+#     if urls:
+#         first_url = urls[0]
+#         print(f"\nScraping: {first_url}\n")
+#         print(scrape_url.invoke(first_url))
+#     else:
+#         print("Koi URL nahi mila search results mein.")
